@@ -22,4 +22,11 @@ class Player
       hand.delete(card) if card.rank == rank
     end
   end
+
+  def hand_has_rank?(rank)
+    hand.each do |card|
+      return true if card.rank == rank
+    end
+    false
+  end
 end

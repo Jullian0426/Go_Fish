@@ -39,7 +39,7 @@ RSpec.describe Player do
     end
   end
 
-  describe 'remove_cards' do
+  describe '#remove_cards' do
     before do
       player.hand = [mock_card1, mock_card2]
     end
@@ -55,6 +55,22 @@ RSpec.describe Player do
       player.remove_cards('4')
       expect(player.hand).to_not include(mock_card1, mock_card2)
       expect(player.hand.size).to eq 0
+    end
+  end
+
+  describe '#has_rank?' do
+    before do
+      player.hand = [mock_card1, mock_card2]
+    end
+
+    it 'returns true if hand contains cards of specified rank' do
+      result = player.hand_has_rank?('3')
+      expect(result).to eq true
+    end
+
+    it 'returns false if hand does not contain cards of specified rank' do
+      result = player.hand_has_rank?('5')
+      expect(result).to eq false
     end
   end
 end
