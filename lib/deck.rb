@@ -21,4 +21,8 @@ class Deck
   def deal
     cards.pop
   end
+
+  def shuffle(seed = Random.new)
+    cards.shuffle!(random: seed)
+  end
 end
