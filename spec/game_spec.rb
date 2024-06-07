@@ -17,8 +17,19 @@ RSpec.describe Game do
   end
 
   describe '#start' do
-    it 'should shuffle the deck' do
-      
+    it 'should tell deck to shuffle' do
+      expect(game.deck).to receive(:shuffle).once
+      game.start
+    end
+
+    it 'deal players 5 cards' do
+      game.start
+      p1_hand_size = game.players.first.hand.size
+      p2_hand_size = game.players.last.hand.size
+      expect(p1_hand_size).to eq 5
+      expect(p2_hand_size).to eq 5
+      deck_size = game.deck.cards.size
+      expect(deck_size).to eq 42
     end
   end
 end

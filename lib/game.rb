@@ -7,4 +7,15 @@ class Game
   def initialize(players)
     @players = players
   end
+
+  def start
+    deck.shuffle
+    players.each do |player|
+      5.times { player.hand << deck.deal }
+    end
+  end
+
+  def deck
+    @deck ||= Deck.new
+  end
 end
