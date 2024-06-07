@@ -7,26 +7,23 @@ class Player
   attr_reader :name, :books
   attr_accessor :hand
 
-  def initialize(name = nil)
+  def initialize(name:, hand: [], books: [])
     @name = name
-    @hand = []
-    @books = []
+    @hand = hand
+    @books = books
   end
 
   def add_cards(cards)
     hand.push(*cards)
   end
 
-  def remove_cards(rank)
+  def remove_by_rank(rank)
     hand.map do |card|
       hand.delete(card) if card.rank == rank
     end
   end
 
   def hand_has_rank?(rank)
-    hand.each do |card|
-      return true if card.rank == rank
-    end
-    false
+    hand.any? { |card| card.rank == rank }
   end
 end

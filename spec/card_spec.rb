@@ -9,18 +9,19 @@ RSpec.describe Card do
       card = Card.new('4', 'H')
       expect(card).to respond_to :suit
       expect(card).to respond_to :rank
-      expect(card).to respond_to :numerical_rank
+      expect(card).to respond_to :value
+      expect(card.value).to eq 2
     end
   end
 
   describe '#==' do
     before do
       @card1 = Card.new('4', 'H')
-      @card2 = Card.new('4', 'C')
+      @card2 = Card.new('4', 'H')
       @card3 = Card.new('5', 'C')
     end
 
-    it 'return true if ranks are equal and false if not' do
+    it 'return true if ranks and suits are equal and false if not' do
       expect(@card1 == @card2).to eq true
       expect(@card1 == @card3).to eq false
     end
