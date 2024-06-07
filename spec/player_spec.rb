@@ -2,20 +2,12 @@
 
 require 'spec_helper'
 require_relative '../lib/player'
-
-class MockCard
-  attr_accessor :rank
-
-  def initialize(rank, suit)
-    @rank = rank
-    @suit = suit
-  end
-end
+require_relative '../lib/card'
 
 RSpec.describe Player do
   let(:player) { Player.new(name: 'Player') }
-  let(:mock_card1) { MockCard.new('3', 'H') }
-  let(:mock_card2) { MockCard.new('4', 'C') }
+  let(:card1) { Card.new('3', 'H') }
+  let(:card2) { Card.new('4', 'C') }
 
   describe '#initialize' do
     it 'responds to name, hand, and books' do
@@ -27,40 +19,40 @@ RSpec.describe Player do
 
   describe '#add_cards' do
     it 'adds a single card to hand' do
-      player.add_cards(mock_card1)
-      expect(player.hand).to include(mock_card1)
+      player.add_cards(card1)
+      expect(player.hand).to include(card1)
       expect(player.hand.size).to eq 1
     end
 
     it 'adds two cards to hand' do
-      player.add_cards([mock_card1, mock_card2])
-      expect(player.hand).to include(mock_card1, mock_card2)
+      player.add_cards([card1, card2])
+      expect(player.hand).to include(card1, card2)
       expect(player.hand.size).to eq 2
     end
   end
 
   describe '#remove_by_rank' do
     before do
-      player.hand = [mock_card1, mock_card2]
+      player.hand = [card1, card2]
     end
 
     it 'removes a single card from hand' do
       player.remove_by_rank('3')
-      expect(player.hand).to_not include(mock_card1)
+      expect(player.hand).to_not include(card1)
       expect(player.hand.size).to eq 1
     end
 
     it 'removes two cards from hand' do
       player.remove_by_rank('3')
       player.remove_by_rank('4')
-      expect(player.hand).to_not include(mock_card1, mock_card2)
+      expect(player.hand).to_not include(card1, card2)
       expect(player.hand.size).to eq 0
     end
   end
 
   describe '#has_rank?' do
     before do
-      player.hand = [mock_card1, mock_card2]
+      player.hand = [card1, card2]
     end
 
     it 'returns true if hand contains cards of specified rank' do
