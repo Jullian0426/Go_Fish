@@ -12,11 +12,25 @@ RSpec.describe Deck do
     end
   end
 
+  def deck_size
+    deck.cards.size
+  end
+
+  before do
+    deck.cards = deck.make_cards
+  end
+
   describe '#make_cards' do
     it 'should populate the deck with cards' do
-      deck.cards = deck.make_cards
-      deck_size = deck.cards.size
       expect(deck_size).to eq 52
+    end
+  end
+
+  describe '#deal' do
+    it 'should remove the top card from the deck' do
+      dealt_card = deck.deal
+      expect(dealt_card).to respond_to :rank
+      expect(deck_size).to eq 51
     end
   end
 end
