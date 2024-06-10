@@ -7,7 +7,7 @@ require_relative 'game_runner'
 
 # The Server class represents a socket server for the Go Fish card game.
 class Server
-  attr_accessor :pending_clients, :clients_waiting, :games, :users
+  attr_accessor :pending_clients, :clients_waiting, :games, :users, :accept_message
 
   def initialize
     @users = {}
@@ -32,17 +32,24 @@ class Server
   def accept_new_client
     client = @server.accept_nonblock
     pending_clients[client] = nil
+    puts 'Accepted client'
   rescue IO::WaitReadable, Errno::EINTR
     accept_message_handler
   end
 
-  def create_player
+  def create_player_if_possible
+    return if pending_clients.empty?
+
     client = pending_clients.keys.last
-    return unless client
+    return unless pending_clients[client].nil?
 
     name = name?(client)
     return unless name != ''
 
+    create_player(client, name)
+  end
+
+  def create_player(client, name)
     player = Player.new(name: name)
     pending_clients[client] = player
     users[client] = player
@@ -62,14 +69,17 @@ class Server
     end
   end
 
+  def run_game(game)
+    clients = game.players.map { |player| users.key(player) }
+    runner = GameRunner.new(game, clients)
+    runner.run
+  end
+
   def accept_message_handler
-    if accept_message == false
-      puts 'No client to accept'
-      self.accept_message = true
-    else
-      puts 'Accepted client'
-      self.accept_message = false
-    end
+    return unless accept_message == false
+
+    puts 'No client to accept'
+    self.accept_message = true
   end
 
   def create_game

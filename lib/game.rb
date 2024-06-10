@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'deck'
+
 # Represents the game of Go Fish
 class Game
   attr_reader :players, :current_player

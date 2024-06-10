@@ -38,11 +38,11 @@ RSpec.describe Server do
     end
   end
 
-  describe '#create_player' do
+  describe '#create_player_if_possible' do
     it 'associates the client with a Player' do
       make_client
       allow(@server).to receive(:name?).and_return('Player 1')
-      @server.create_player
+      @server.create_player_if_possible
       expect(@server.pending_clients[@server.pending_clients.keys.last].name).to eq 'Player 1'
     end
   end
@@ -51,7 +51,7 @@ RSpec.describe Server do
     it 'should send waiting message if there are not enough players' do
       client1 = make_client
       allow(@server).to receive(:name?).and_return('Player 1')
-      @server.create_player
+      @server.create_player_if_possible
       @server.create_game_if_possible
       expect(client1.capture_output.chomp).to eq 'Waiting for more players...'
     end
@@ -60,7 +60,7 @@ RSpec.describe Server do
       allow(@server).to receive(:name?).and_return('Player 1', 'Player 2')
       2.times do
         make_client
-        @server.create_player
+        @server.create_player_if_possible
       end
       @server.create_game_if_possible
       expect(@server.games.count).to eq 1
