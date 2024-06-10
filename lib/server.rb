@@ -7,12 +7,14 @@ require_relative 'game_runner'
 
 # The Server class represents a socket server for the Go Fish card game.
 class Server
-  attr_accessor :pending_clients, :clients_waiting, :games, :users, :accept_message
+  attr_accessor :pending_clients, :clients_waiting, :games, :users, :accept_message, :prompted_name, :unnamed_clients
 
   def initialize
     @users = {}
     @pending_clients = {}
+    @unnamed_clients = []
     @clients_waiting = {}
+    @prompted_name = {}
     @accept_message = false
     @games = []
   end
@@ -31,33 +33,35 @@ class Server
 
   def accept_new_client
     client = @server.accept_nonblock
-    pending_clients[client] = nil
+    unnamed_clients << client
     puts 'Accepted client'
   rescue IO::WaitReadable, Errno::EINTR
     accept_message_handler
   end
 
+  # TODO: avoid blocking
   def create_player_if_possible
-    return if pending_clients.empty?
+    unnamed_clients.each do |client|
+      name = name(client)
+      next unless name != ''
 
-    client = pending_clients.keys.last
-    return unless pending_clients[client].nil?
-
-    name = name?(client)
-    return unless name != ''
-
-    create_player(client, name)
+      create_player(client, name)
+    end
   end
 
   def create_player(client, name)
     player = Player.new(name: name)
+    unnamed_clients.delete(client)
     pending_clients[client] = player
     users[client] = player
   end
 
-  def name?(client)
-    client.puts('Please enter your name:')
-    client.gets.chomp
+  def name(client)
+    if prompted_name[client].nil?
+      client.puts('Please enter your name:')
+      prompted_name[client] = true
+    end
+    capture_client_input(client)
   end
 
   def create_game_if_possible
@@ -86,6 +90,13 @@ class Server
     games << Game.new(pending_clients.values)
     pending_clients.clear
     games.last
+  end
+
+  def capture_client_input(client)
+    sleep(0.1)
+    client.read_nonblock(1000).chomp
+  rescue IO::WaitReadable
+    @output = ''
   end
 
   def waiting_handler
