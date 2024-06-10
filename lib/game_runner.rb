@@ -7,18 +7,8 @@ require_relative 'player'
 class GameRunner
   attr_reader :game
 
-  def initialize
-    @game = create_game
-  end
-
-  def create_game
-    puts('Provide name for first player:')
-    p1_name = gets.chomp
-    puts('Provide name for second player:')
-    p2_name = gets.chomp
-    player1 = Player.new(name: p1_name)
-    player2 = Player.new(name: p2_name)
-    Game.new([player1, player2])
+  def initialize(game)
+    @game = game
   end
 
   def game_loop

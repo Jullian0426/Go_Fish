@@ -4,22 +4,15 @@ require 'spec_helper'
 require_relative '../lib/game_runner'
 
 RSpec.describe GameRunner do
-  before do
-    allow_any_instance_of(Kernel).to receive(:gets).and_return('Player 1', 'Player 2')
-
-    @game_runner = GameRunner.new
-    @game = @game_runner.game
-  end
-
-  describe '#create_game' do
-    it 'make game with provided names' do
-      expect(@game.players.first.name).to eq('Player 1')
-      expect(@game.players.last.name).to eq('Player 2')
-    end
-  end
-
   let(:card1) { Card.new('3', 'H') }
   let(:card2) { Card.new('4', 'C') }
+  let(:player1) { Player.new(name: 'Player 1') }
+  let(:player2) { Player.new(name: 'Player 2') }
+
+  before do
+    @game = Game.new([player1, player2])
+    @game_runner = GameRunner.new(@game)
+  end
 
   before do
     @game.players[0].hand = [card1, card2]
