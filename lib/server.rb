@@ -7,13 +7,14 @@ require_relative 'game_runner'
 
 # The Server class represents a socket server for the Go Fish card game.
 class Server
-  attr_accessor :pending_clients
+  attr_accessor :pending_clients, :clients_waiting, :games, :users
 
   def initialize
     @users = {}
     @pending_clients = {}
-    @client_messages_sent = {}
+    @clients_waiting = {}
     @accept_message = false
+    @games = []
   end
 
   def port_number
@@ -37,17 +38,28 @@ class Server
 
   def create_player
     client = pending_clients.keys.last
+    return unless client
+
     name = name?(client)
+    return unless name != ''
+
     player = Player.new(name: name)
     pending_clients[client] = player
-  end
-
-  def create_game_if_possible
-
+    users[client] = player
   end
 
   def name?(client)
-    
+    client.puts('Please enter your name:')
+    client.gets.chomp
+  end
+
+  def create_game_if_possible
+    # TODO: change to MIN_PLAYERS variable
+    if pending_clients.size >= 2
+      create_game
+    elsif pending_clients.size == 1
+      waiting_handler
+    end
   end
 
   def accept_message_handler
@@ -58,5 +70,20 @@ class Server
       puts 'Accepted client'
       self.accept_message = false
     end
+  end
+
+  def create_game
+    games << Game.new(pending_clients.values)
+    pending_clients.clear
+    games.last
+  end
+
+  def waiting_handler
+    client = pending_clients.keys.first
+    unless clients_waiting[client]
+      client.puts('Waiting for more players...')
+      clients_waiting[client] = true
+    end
+    nil
   end
 end
