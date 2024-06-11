@@ -18,9 +18,9 @@ class GameRunner
 
   def game_loop
     display_hand
-    get_choice(:validate_rank, rank_prompt)
-    get_choice(:validate_opponent, opponent_prompt)
-    # game.play_round(rank, opponent)
+    rank = get_choice(:validate_rank, rank_prompt)
+    opponent = get_choice(:validate_opponent, opponent_prompt)
+    game.play_round(rank, opponent)
     display_game_update
   end
 

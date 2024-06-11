@@ -26,6 +26,9 @@ class Game
     end
   end
 
+  def play_round(rank, opponent)
+  end
+
   def validate_rank(rank)
     exists = current_player.hand.any? { |card| card.rank == rank }
     rank if exists
@@ -35,7 +38,7 @@ class Game
     return nil if position.empty?
 
     index = position.to_i - 1
-    return nil if index.negative? || index >= players.size
+    return nil if index.negative? || index >= players.size || players[index] == current_player
 
     players[index]
   end

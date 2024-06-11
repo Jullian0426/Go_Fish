@@ -45,6 +45,15 @@ RSpec.describe Server do
       @server.create_player_if_possible
       expect(@server.pending_clients[@server.pending_clients.keys.last].name).to eq 'Player 1'
     end
+
+    it 'should prompt the user to input a name' do
+      socket = make_client
+      client = @server.unnamed_clients.last
+      socket.provide_input('Player 1')
+      name = @server.fetch_name(client)
+
+      expect(name).to eq 'Player 1'
+    end
   end
 
   describe '#create_game_if_possible' do
@@ -65,17 +74,6 @@ RSpec.describe Server do
       end
       @server.create_game_if_possible
       expect(@server.games.count).to eq 1
-    end
-  end
-
-  describe '#name' do
-    it 'should prompt the user to input a name' do
-      socket = make_client
-      client = @server.unnamed_clients.last
-      socket.provide_input('Player 1')
-      name = @server.name(client)
-
-      expect(name).to eq 'Player 1'
     end
   end
 end

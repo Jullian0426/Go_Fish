@@ -17,17 +17,31 @@ RSpec.describe Game do
     end
   end
 
+  xit 'runs a game from start to finish' do
+    game.start
+    until game.winner
+      rank = game.current_player.hand.sample.rank
+      opponent = game.players.find { |player| player != game.current_player }
+      game.play_round(rank, opponent)
+    end
+    expect(game.winner).not_to be_nil
+  end
+
   describe '#start' do
     it 'should tell deck to shuffle' do
       expect(game.deck).to receive(:shuffle).once
       game.start
     end
 
-    it 'deal players cards according to STARTING_HAND variable' do
+    before do
       game.start
-      original_deck_size = game.deck.cards.size
-      p1_hand_size = game.players.first.hand.size
-      p2_hand_size = game.players.last.hand.size
+    end
+
+    let(:original_deck_size) { game.deck.cards.size }
+    let(:p1_hand_size) { game.players.first.hand.size }
+    let(:p2_hand_size) { game.players.last.hand.size }
+
+    it 'deal players cards according to STARTING_HAND variable' do
       expect(p1_hand_size).to eq Game::STARTING_HAND
       expect(p2_hand_size).to eq Game::STARTING_HAND
       deck_size = game.deck.cards.size
@@ -54,8 +68,8 @@ RSpec.describe Game do
 
   describe '#validate_opponent' do
     it 'returns selected player if player exists' do
-      result = game.validate_opponent('1')
-      expect(result).to eq player1
+      result = game.validate_opponent('2')
+      expect(result).to eq player2
     end
 
     it 'returns nil if selected player does not exist' do

@@ -41,7 +41,7 @@ class Server
 
   def create_player_if_possible
     unnamed_clients.each do |client|
-      name = name(client)
+      name = fetch_name(client)
       next unless name != ''
 
       create_player(client, name)
@@ -55,8 +55,7 @@ class Server
     users[client] = player
   end
 
-  # TODO: rename
-  def name(client)
+  def fetch_name(client)
     if prompted_name[client].nil?
       client.puts('Please enter your name:')
       prompted_name[client] = true
