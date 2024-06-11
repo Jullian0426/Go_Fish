@@ -2,12 +2,11 @@
 
 # The GameRunner class is responsible for running the game of Go Fish.
 class GameRunner
-  attr_accessor :game, :clients, :server
+  attr_accessor :game, :clients, :opponent, :rank
 
-  def initialize(game, clients, server)
+  def initialize(game, clients)
     @game = game
     @clients = clients
-    @server = server
   end
 
   def run
@@ -19,10 +18,10 @@ class GameRunner
 
   def game_loop
     display_hand
-    rank = rank_choice
-    opponent = opponent_choice
+    get_choice(:validate_rank, rank_prompt)
+    get_choice(:validate_opponent, opponent_prompt)
     # game.play_round(rank, opponent)
-    # display_game_update
+    display_game_update
   end
 
   def display_hand
@@ -32,29 +31,27 @@ class GameRunner
     message = "#{name}'s hand: #{hand_string}\n"
 
     client = find_client_for_player(game.current_player)
+    # should TCP Socket, but it is a Client
     client.puts(message)
   end
 
-  def rank_choice
+  def get_choice(validation_method, prompt)
+    result = nil
     client = find_client_for_player(game.current_player)
-    client.puts("#{game.current_player.name}, choose a rank to ask for: ")
-    validate_rank_loop(client)
+    client.puts(prompt)
+    result = validation_loop(client, validation_method) until result
+    result
   end
 
-  def validate_rank_loop(client)
-    rank = nil
-    until rank
-      input = server.capture_client_input(client)
-      rank = input if game.validate_rank?(input)
-      invalid_input_message(client) unless rank
-    end
-    rank
+  def validation_loop(client, validation_method)
+    input = capture_client_input(client)
+    choice_var = game.send(validation_method, input)
+    invalid_input_message(client) unless choice_var
+    choice_var
   end
 
-  def opponent_choice
-    client = find_client_for_player(game.current_player)
-    client.puts(opponent_prompt)
-    validate_opponent_loop(client)
+  def rank_prompt
+    "#{game.current_player.name}, choose a rank to ask for: "
   end
 
   def opponent_prompt
@@ -64,22 +61,23 @@ class GameRunner
     (ex: 1 for first player listed): "
   end
 
-  def validate_opponent_loop(client)
-    opponent = nil
-    until opponent
-      input = server.capture_client_input(client)
-      opponent = game.validate_opponent(input)
-      invalid_input_message(client) unless opponent
-    end
-    opponent
-  end
-
   def display_game_update
+    game.players.each do |player|
+      client = find_client_for_player(player)
+      client.puts(game.game_update_message(player))
+    end
   end
 
   def find_client_for_player(player)
     index = game.players.index(player)
     @clients[index]
+  end
+
+  def capture_client_input(client)
+    sleep(0.1)
+    client.read_nonblock(1000).chomp
+  rescue IO::WaitReadable
+    @output = ''
   end
 
   def invalid_input_message(client)

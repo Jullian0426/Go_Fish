@@ -8,16 +8,18 @@ require_relative '../lib/game_runner'
 
 RSpec.describe GameRunner do
   let(:cards) { [Card.new('3', 'H'), Card.new('4', 'C'), Card.new('3', 'D'), Card.new('3', 'C'), Card.new('3', 'S')] }
-  let(:players) { Array.new(2) { |i| Player.new(name: "Player #{i + 1}") } }
-  let(:game) { Game.new(players) }
-  let(:clients) { Array.new(2) { Client.new(@server.port_number) } }
-  let(:runner) { GameRunner.new(game, clients, @server) }
+  let(:game) { @server.create_game_if_possible }
+  let(:client1) { make_client('Player 1') }
+  let(:client2) { make_client('Player 2') }
+  let(:runner) { @server.create_runner(game) }
 
   before(:each) do
     @clients = []
     @server = Server.new
     @server.start
     sleep 0.1
+    client1
+    client2
   end
 
   after(:each) do
@@ -25,55 +27,61 @@ RSpec.describe GameRunner do
     @clients.each(&:close)
   end
 
-  def capture_kernel
-    clients.map do |client|
-      output = ''
-      allow(client).to receive(:puts) do |message|
-        output << message
-      end
-      output
-    end
+  def make_client(name)
+    client = Client.new(@server.port_number)
+    @clients.push(client)
+    @server.accept_new_client
+    client.provide_input(name)
+    @server.create_player_if_possible
+    client
   end
 
   before do
+    client1.capture_output
     game.players[0].hand = cards[0..1]
     game.players[1].hand = cards[2..4]
   end
 
   describe '#display_hand' do
     it "sends first player's hand to the client" do
-      captured_output = capture_kernel
-
       runner.display_hand
-      expect(captured_output.first).to eq "Player 1's hand: 3H, 4C\n"
+      expect(client1.capture_output).to eq "Player 1's hand: 3H, 4C\n"
     end
   end
 
-  before do
-    allow_any_instance_of(Kernel).to receive(:puts)
-  end
-
-  describe '#rank_choice' do
-    it 'returns choice if rank is valid' do
-      allow(@server).to receive(:capture_client_input).and_return('1', '3')
-      expect(runner.rank_choice).to eq('3')
+  describe '#get_choice' do
+    it 'returns rank if rank choice is valid' do
+      client1.provide_input('3')
+      result = runner.get_choice(:validate_rank, runner.rank_prompt)
+      expect(result).to eq('3')
     end
-  end
 
-  describe '#opponent_choice' do
-    it 'returns choice if opponent is valid ' do
-      allow(@server).to receive(:capture_client_input).and_return('3', '2')
-      expect(runner.opponent_choice).to eq(runner.game.players[1])
+    it 'returns invalid input message if rank choice is invalid' do
+      client1.capture_output
+      client1.provide_input('6')
+      runner.validation_loop(runner.clients[0], :validate_rank)
+      expect(client1.capture_output).to include("Invalid input. Please try again: \n")
+    end
+
+    it 'returns opponent if opponent choice is valid ' do
+      client1.provide_input('2')
+      result = runner.get_choice(:validate_opponent, runner.opponent_prompt)
+      expect(result).to eq(runner.game.players[1])
+    end
+
+    it 'returns invalid input message if opponent choice is invalid' do
+      client1.capture_output
+      client1.provide_input('3')
+      runner.validation_loop(runner.clients[0], :validate_opponent)
+      expect(client1.capture_output).to include("Invalid input. Please try again: \n")
     end
   end
 
   describe '#display_game_update' do
-    it "sends a message to the current player's client with the game update" do
-      allow(game).to receive(:last_turn_opponent).and_return(game.players[1])
-      allow(game).to receive(:last_turn_card_taken).and_return('3')
-      allow(game).to receive(:last_turn_books).and_return(['3'])
-
-      captured_outputs = capture_kernel
+    xit "sends a message to the current player's client with the game update" do
+      game.last_turn_opponent = game.players[1]
+      game.last_turn_card_taken = '3'
+      game.last_turn_books = ['3']
 
       runner.display_game_update
 

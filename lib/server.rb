@@ -55,6 +55,7 @@ class Server
     users[client] = player
   end
 
+  # TODO: rename
   def name(client)
     if prompted_name[client].nil?
       client.puts('Please enter your name:')
@@ -72,9 +73,13 @@ class Server
   end
 
   def run_game(game)
-    clients = game.players.map { |player| users.key(player) }
-    runner = GameRunner.new(game, clients, self)
+    create_runner(game)
     runner.run
+  end
+
+  def create_runner(game)
+    clients = game.players.map { |player| users.key(player) }
+    GameRunner.new(game, clients)
   end
 
   def accept_message_handler

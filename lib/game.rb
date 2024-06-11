@@ -5,7 +5,7 @@ require_relative 'deck'
 # Represents the game of Go Fish
 class Game
   attr_reader :players, :current_player
-  attr_accessor :winner
+  attr_accessor :winner, :last_turn_opponent, :last_turn_card_taken, :last_turn_books
 
   MIN_PLAYERS = 2
   STARTING_HAND = 5
@@ -14,6 +14,9 @@ class Game
     @players = players
     @winner = nil
     @current_player = players.first
+    @last_turn_opponent = nil
+    @last_turn_card_taken = nil
+    @last_turn_books = []
   end
 
   def start
@@ -23,8 +26,9 @@ class Game
     end
   end
 
-  def validate_rank?(rank)
-    current_player.hand.any? { |card| card.rank == rank }
+  def validate_rank(rank)
+    exists = current_player.hand.any? { |card| card.rank == rank }
+    rank if exists
   end
 
   def validate_opponent(position)
@@ -38,14 +42,5 @@ class Game
 
   def deck
     @deck ||= Deck.new
-  end
-
-  def last_turn_opponent
-  end
-
-  def last_turn_card_taken
-  end
-
-  def last_turn_books
   end
 end
