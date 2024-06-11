@@ -7,7 +7,7 @@ require_relative '../lib/client'
 require_relative '../lib/game_runner'
 
 RSpec.describe GameRunner do
-  let(:cards) { [Card.new('3', 'H'), Card.new('4', 'C'), Card.new('3', 'D'), Card.new('3', 'C'), Card.new('3', 'S')] }
+  let(:cards) { [Card.new('K', 'H'), Card.new('4', 'C'), Card.new('K', 'D'), Card.new('K', 'C'), Card.new('K', 'S')] }
   let(:game) { @server.create_game_if_possible }
   let(:client1) { make_client('Player 1') }
   let(:client2) { make_client('Player 2') }
@@ -38,6 +38,7 @@ RSpec.describe GameRunner do
 
   before do
     client1.capture_output
+    client2.capture_output
     game.players[0].hand = cards[0..1]
     game.players[1].hand = cards[2..4]
   end
@@ -45,15 +46,15 @@ RSpec.describe GameRunner do
   describe '#display_hand' do
     it "sends first player's hand to the client" do
       runner.display_hand
-      expect(client1.capture_output).to eq "Player 1's hand: 3H, 4C\n"
+      expect(client1.capture_output).to eq "Player 1's hand: KH, 4C\n"
     end
   end
 
   describe '#get_choice' do
     it 'returns rank if rank choice is valid' do
-      client1.provide_input('3')
+      client1.provide_input('k')
       result = runner.get_choice(:validate_rank, runner.rank_prompt)
-      expect(result).to eq('3')
+      expect(result).to eq('K')
     end
 
     it 'returns invalid input message if rank choice is invalid' do
@@ -78,19 +79,15 @@ RSpec.describe GameRunner do
   end
 
   describe '#display_game_update' do
-    xit "sends a message to the current player's client with the game update" do
+    it "sends a message to the current player's client with the game update" do
       game.last_turn_opponent = game.players[1]
-      game.last_turn_card_taken = '3'
-      game.last_turn_books = ['3']
+      game.last_turn_card_taken = 'K'
+      game.last_turn_books = ['K']
 
       runner.display_game_update
 
-      expected_messages = [
-        "You took 3's from your opponent.\nYou made books with: 3\n",
-        "Your 3's were taken by Player 1.\n"
-      ]
-
-      expect(captured_outputs).to eq(expected_messages)
+      expect(client1.capture_output).to eq "You took K's from your opponent.\nYou made books with: K\n"
+      expect(client2.capture_output).to eq "Your K's were taken by Player 1.\n"
     end
   end
 end

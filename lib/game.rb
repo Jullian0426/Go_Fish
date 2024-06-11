@@ -4,8 +4,8 @@ require_relative 'deck'
 
 # Represents the game of Go Fish
 class Game
-  attr_reader :players, :current_player
-  attr_accessor :winner, :last_turn_opponent, :last_turn_card_taken, :last_turn_books
+  attr_reader :players
+  attr_accessor :winner, :last_turn_opponent, :last_turn_card_taken, :last_turn_books, :current_player
 
   MIN_PLAYERS = 2
   STARTING_HAND = 5
@@ -38,6 +38,42 @@ class Game
     return nil if index.negative? || index >= players.size
 
     players[index]
+  end
+
+  def game_update_message(player)
+    if player == current_player
+      update_current_player
+    elsif player == last_turn_opponent
+      update_opponent
+    else
+      update_other
+    end
+  end
+
+  def update_current_player
+    message = if last_turn_card_taken
+                "You took #{last_turn_card_taken}'s from your opponent."
+              else
+                'Go Fish! No cards were taken.'
+              end
+    message += "\nYou made books with: #{last_turn_books.join(', ')}" if last_turn_books.any?
+    message
+  end
+
+  def update_opponent
+    if last_turn_card_taken
+      "Your #{last_turn_card_taken}'s were taken by #{current_player.name}."
+    else
+      "#{current_player.name} had to Go Fish!"
+    end
+  end
+
+  def update_other
+    if last_turn_card_taken
+      "#{current_player.name} took #{last_turn_card_taken}'s from #{last_turn_opponent.name}."
+    else
+      "#{current_player.name} had to Go Fish!"
+    end
   end
 
   def deck

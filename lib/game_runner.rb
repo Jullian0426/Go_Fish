@@ -31,7 +31,6 @@ class GameRunner
     message = "#{name}'s hand: #{hand_string}\n"
 
     client = find_client_for_player(game.current_player)
-    # should TCP Socket, but it is a Client
     client.puts(message)
   end
 
@@ -76,7 +75,7 @@ class GameRunner
 
   def capture_client_input(client)
     sleep(0.1)
-    client.read_nonblock(1000).chomp
+    client.read_nonblock(1000).chomp.upcase
   rescue IO::WaitReadable
     @output = ''
   end
