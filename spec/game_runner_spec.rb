@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# frozen_string_literal: false
 
 require 'spec_helper'
 require 'socket'
@@ -31,14 +31,33 @@ RSpec.describe GameRunner do
 
   describe '#display_hand' do
     it "sends first player's hand to the client" do
+      captured_output = ''
+
+      allow_any_instance_of(Kernel).to receive(:puts) do |_, message|
+        captured_output << message
+      end
+
       runner.display_hand
-      expect(clients[0].capture_output).to eq "Player 1's hand: 3H, 4C\n"
+      expect(captured_output).to eq "Player 1's hand: 3H, 4C\n"
     end
   end
 
+  before do
+    allow_any_instance_of(Kernel).to receive(:puts)
+  end
+
   describe '#rank_choice' do
-    it 'asks player for a choice until choice is valid' do
+    it 'returns choice if rank is valid' do
+      allow(@server).to receive(:capture_client_input).and_return('1', '3')
       expect(runner.rank_choice).to eq('3')
+    end
+  end
+
+  describe '#opponent_choice' do
+    it 'returns choice if opponent is valid ' do
+      allow_any_instance_of(Kernel).to receive(:puts)
+      allow(@server).to receive(:capture_client_input).and_return('3', '2')
+      expect(runner.opponent_choice).to eq(runner.game.players[1])
     end
   end
 end

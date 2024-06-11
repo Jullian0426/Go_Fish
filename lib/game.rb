@@ -23,8 +23,17 @@ class Game
     end
   end
 
-  def validate_rank(rank)
+  def validate_rank?(rank)
     current_player.hand.any? { |card| card.rank == rank }
+  end
+
+  def validate_opponent(position)
+    return nil if position.empty?
+
+    index = position.to_i - 1
+    return nil if index.negative? || index >= players.size
+
+    players[index]
   end
 
   def deck

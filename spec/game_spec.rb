@@ -34,7 +34,7 @@ RSpec.describe Game do
     end
   end
 
-  describe '#validate_rank' do
+  describe '#validate_rank?' do
     let(:card1) { Card.new('3', 'H') }
     let(:card2) { Card.new('4', 'C') }
 
@@ -43,11 +43,23 @@ RSpec.describe Game do
     end
 
     it "returns true if rank is present in current player's hand" do
-      expect(game.validate_rank('3')).to be true
+      expect(game.validate_rank?('3')).to be true
     end
 
     it "returns false if rank is not present in current player's hand" do
-      expect(game.validate_rank('6')).to be false
+      expect(game.validate_rank?('6')).to be false
+    end
+  end
+
+  describe '#validate_opponent' do
+    it 'returns selected player if player exists' do
+      result = game.validate_opponent('1')
+      expect(result).to eq player1
+    end
+
+    it 'returns nil if selected player does not exist' do
+      result = game.validate_opponent('3')
+      expect(result).to eq nil
     end
   end
 end
