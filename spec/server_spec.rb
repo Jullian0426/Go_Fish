@@ -58,7 +58,7 @@ RSpec.describe Server do
     end
 
     it 'should create a game when there are enough players' do
-      2.times do |i|
+      Game::MIN_PLAYERS.times do |i|
         client = make_client
         client.provide_input("Player #{i + 1}")
         @server.create_player_if_possible

@@ -1,15 +1,13 @@
 # frozen_string_literal: true
 
-require_relative 'game'
-require_relative 'player'
-
 # The GameRunner class is responsible for running the game of Go Fish.
 class GameRunner
-  attr_reader :game
+  attr_accessor :game, :clients, :server
 
-  def initialize(game, clients)
+  def initialize(game, clients, server)
     @game = game
     @clients = clients
+    @server = server
   end
 
   def run
@@ -30,11 +28,11 @@ class GameRunner
   end
 
   def rank_choice
-    input = nil
-    until game.validate_rank(input)
-      puts("#{game.current_player.name}, choose a rank to ask for: ")
-      input = gets.chomp
-    end
+    input = ''
+    message = "#{game.current_player.name}, choose a rank to ask for: "
+    client = find_client_for_player(game.current_player)
+    client.puts(message)
+    input = server.capture_client_input(client) until game.validate_rank(input)
     input
   end
 
@@ -42,6 +40,14 @@ class GameRunner
     name = game.current_player.name
     hand = game.current_player.hand
     hand_string = hand.map { |card| "#{card.rank}#{card.suit}" }.join(', ')
-    puts("#{name}'s hand: #{hand_string}\n")
+    message = "#{name}'s hand: #{hand_string}\n"
+
+    client = find_client_for_player(game.current_player)
+    client.puts(message)
+  end
+
+  def find_client_for_player(player)
+    index = game.players.index(player)
+    @clients[index]
   end
 end

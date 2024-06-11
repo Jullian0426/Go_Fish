@@ -1,34 +1,44 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'socket'
+require_relative '../lib/server'
+require_relative '../lib/client'
 require_relative '../lib/game_runner'
 
 RSpec.describe GameRunner do
-  let(:card1) { Card.new('3', 'H') }
-  let(:card2) { Card.new('4', 'C') }
-  let(:player1) { Player.new(name: 'Player 1') }
-  let(:player2) { Player.new(name: 'Player 2') }
+  let(:cards) { [Card.new('3', 'H'), Card.new('4', 'C')] }
+  let(:players) { Array.new(2) { |i| Player.new(name: "Player #{i + 1}") } }
+  let(:game) { Game.new(players) }
+  let(:clients) { Array.new(2) { Client.new(@server.port_number) } }
+  let(:runner) { GameRunner.new(game, clients, @server) }
 
-  before do
-    @game = Game.new([player1, player2])
-    @game_runner = GameRunner.new(@game)
+  before(:each) do
+    @clients = []
+    @server = Server.new
+    @server.start
+    sleep 0.1
+  end
+
+  after(:each) do
+    @server.stop
+    @clients.each(&:close)
   end
 
   before do
-    @game.players[0].hand = [card1, card2]
+    game.players[0].hand = cards
   end
 
   describe '#display_hand' do
-    it "displays first player's hand" do
-      expect { @game_runner.display_hand }.to output("Player 1's hand: 3H, 4C\n").to_stdout
+    it "sends first player's hand to the client" do
+      runner.display_hand
+      expect(clients[0].capture_output).to eq "Player 1's hand: 3H, 4C\n"
     end
   end
 
   describe '#rank_choice' do
     it 'asks player for a choice until choice is valid' do
-      allow_any_instance_of(Kernel).to receive(:gets).and_return('1', '3')
-      expect(@game_runner).to receive(:puts).with('Player 1, choose a rank to ask for: ').twice
-      expect(@game_runner.rank_choice).to eq('3')
+      expect(runner.rank_choice).to eq('3')
     end
   end
 end

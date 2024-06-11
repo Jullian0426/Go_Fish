@@ -39,7 +39,6 @@ class Server
     accept_message_handler
   end
 
-  # TODO: avoid blocking
   def create_player_if_possible
     unnamed_clients.each do |client|
       name = name(client)
@@ -65,17 +64,16 @@ class Server
   end
 
   def create_game_if_possible
-    # TODO: change to MIN_PLAYERS variable
-    if pending_clients.size >= 2
+    if pending_clients.size >= Game::MIN_PLAYERS
       create_game
-    elsif pending_clients.size == 1
+    elsif pending_clients.size < Game::MIN_PLAYERS && !pending_clients.empty?
       waiting_handler
     end
   end
 
   def run_game(game)
     clients = game.players.map { |player| users.key(player) }
-    runner = GameRunner.new(game, clients)
+    runner = GameRunner.new(game, clients, self)
     runner.run
   end
 

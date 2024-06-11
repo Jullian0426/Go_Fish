@@ -7,6 +7,9 @@ class Game
   attr_reader :players, :current_player
   attr_accessor :winner
 
+  MIN_PLAYERS = 2
+  STARTING_HAND = 5
+
   def initialize(players)
     @players = players
     @winner = nil
@@ -16,7 +19,7 @@ class Game
   def start
     deck.shuffle
     players.each do |player|
-      5.times { player.hand << deck.deal }
+      STARTING_HAND.times { player.hand << deck.deal }
     end
   end
 
