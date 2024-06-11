@@ -73,7 +73,7 @@ class Server
   end
 
   def run_game(game)
-    create_runner(game)
+    runner = create_runner(game)
     runner.run
   end
 

@@ -2,7 +2,7 @@
 
 # The GameRunner class is responsible for running the game of Go Fish.
 class GameRunner
-  attr_accessor :game, :clients, :opponent, :rank
+  attr_accessor :game, :clients
 
   def initialize(game, clients)
     @game = game
@@ -36,7 +36,6 @@ class GameRunner
   end
 
   def get_choice(validation_method, prompt)
-    result = nil
     client = find_client_for_player(game.current_player)
     client.puts(prompt)
     result = validation_loop(client, validation_method) until result
@@ -45,8 +44,10 @@ class GameRunner
 
   def validation_loop(client, validation_method)
     input = capture_client_input(client)
-    choice_var = game.send(validation_method, input)
-    invalid_input_message(client) unless choice_var
+    unless input.empty?
+      choice_var = game.send(validation_method, input)
+      invalid_input_message(client) unless choice_var
+    end
     choice_var
   end
 
