@@ -39,4 +39,13 @@ class Game
   def deck
     @deck ||= Deck.new
   end
+
+  def last_turn_opponent
+  end
+
+  def last_turn_card_taken
+  end
+
+  def last_turn_books
+  end
 end

@@ -18,10 +18,11 @@ class GameRunner
   end
 
   def game_loop
-    # display_hand
-    # rank = rank_choice
-    # opponent = opponent_choice
+    display_hand
+    rank = rank_choice
+    opponent = opponent_choice
     # game.play_round(rank, opponent)
+    # display_game_update
   end
 
   def display_hand
@@ -71,6 +72,9 @@ class GameRunner
       invalid_input_message(client) unless opponent
     end
     opponent
+  end
+
+  def display_game_update
   end
 
   def find_client_for_player(player)
