@@ -5,6 +5,7 @@ require_relative '../lib/game'
 require_relative '../lib/player'
 require_relative '../lib/deck'
 require_relative '../lib/card'
+require_relative '../lib/book'
 
 RSpec.describe Game do
   let(:player1) { Player.new(name: 'Player 1') }
@@ -49,6 +50,78 @@ RSpec.describe Game do
     end
   end
 
+  describe '#play_round' do
+    let(:deck) { game.deck }
+
+    context 'when the requested rank is present in the opponent\'s hand' do
+      let(:card1) { Card.new('3', 'H') }
+      let(:card2) { Card.new('3', 'D') }
+
+      before do
+        player2.hand = [card1, card2]
+        player1.hand = []
+        game.play_round('3', player2)
+      end
+
+      it 'moves cards from the opponent to the current player' do
+        expect(player1.hand).to include(card1, card2)
+        expect(player2.hand).not_to include(card1, card2)
+      end
+
+      it 'updates the last_turn_card_taken' do
+        expect(game.last_turn_card_taken).to eq('3')
+      end
+
+      it 'does not make the current player draw a card from the deck' do
+        expect(player1.hand.size).to eq(2)
+      end
+    end
+
+    context 'when the requested rank is not present in the opponent\'s hand' do
+      let(:card1) { Card.new('4', 'H') }
+
+      before do
+        player2.hand = [card1]
+        player1.hand = []
+        deck.cards = [Card.new('5', 'S')]
+        game.play_round('3', player2)
+      end
+
+      it 'does not move any cards from the opponent to the current player' do
+        expect(player1.hand).not_to include(card1)
+        expect(player2.hand).to include(card1)
+      end
+
+      it 'makes the current player draw a card from the deck' do
+        expect(player1.hand.size).to eq(1)
+        expect(player1.hand.first.rank).to eq('5')
+      end
+
+      it 'updates the last_turn_card_taken to nil' do
+        expect(game.last_turn_card_taken).to be_nil
+      end
+    end
+
+    context 'when the current player makes a book' do
+      let(:cards) { %w[H D S C].map { |suit| Card.new('3', suit) } }
+
+      before do
+        player1.hand = cards[0..2]
+        player2.hand = [cards[3]]
+        game.play_round('3', player2)
+      end
+
+      it 'moves the cards to the player\'s books' do
+        expect(player1.books.map(&:rank)).to include('3')
+        expect(player1.hand).to be_empty
+      end
+
+      it 'updates the last_turn_book' do
+        expect(game.last_turn_book.rank).to eq('3')
+      end
+    end
+  end
+
   describe '#validate_rank' do
     let(:card1) { Card.new('3', 'H') }
     let(:card2) { Card.new('4', 'C') }
@@ -86,7 +159,7 @@ RSpec.describe Game do
     context 'when the current player took cards from the opponent' do
       before do
         game.last_turn_card_taken = '3'
-        game.last_turn_books = []
+        game.last_turn_book = nil
       end
 
       it 'returns the correct message for the current player' do
@@ -101,7 +174,7 @@ RSpec.describe Game do
     context 'when the current player did not take any cards and had to "Go Fish"' do
       before do
         game.last_turn_card_taken = nil
-        game.last_turn_books = []
+        game.last_turn_book = nil
       end
 
       it 'returns the correct message for the current player' do
@@ -113,14 +186,16 @@ RSpec.describe Game do
       end
     end
 
-    context 'when books were made during the turn' do
+    context 'when a book was made during the turn' do
+      let(:book) { Book.new(%w[H D S C].map { |suit| Card.new('3', suit) }) }
+
       before do
         game.last_turn_card_taken = '3'
-        game.last_turn_books = ['3']
+        game.last_turn_book = book
       end
 
-      it 'returns the correct message for the current player including books' do
-        expect(game.game_update_message(player1)).to eq "You took 3's from your opponent.\nYou made books with: 3"
+      it 'returns the correct message for the current player including the book' do
+        expect(game.game_update_message(player1)).to eq "You took 3's from your opponent.\nYou made a book with: 3"
       end
     end
 
@@ -132,7 +207,7 @@ RSpec.describe Game do
         game_with_three_players.current_player = player1
         game_with_three_players.last_turn_opponent = player2
         game_with_three_players.last_turn_card_taken = '3'
-        game_with_three_players.last_turn_books = []
+        game_with_three_players.last_turn_book = nil
       end
 
       it 'returns the correct message for other players when cards were taken' do
