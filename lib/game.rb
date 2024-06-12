@@ -30,8 +30,7 @@ class Game
   end
 
   def validate_rank(rank)
-    exists = current_player.hand.any? { |card| card.rank == rank }
-    rank if exists
+    rank if current_player.hand.any? { |card| card.rank == rank }
   end
 
   def validate_opponent(position)

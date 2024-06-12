@@ -57,8 +57,7 @@ class GameRunner
   def opponent_prompt
     player_list = game.players.map(&:name).join(', ')
     "#{player_list}
-    #{game.current_player.name}, choose an opponent to take from by typing a number
-    (ex: 1 for first player listed): "
+    #{game.current_player.name}, choose an opponent to take from by typing a number \n(ex: 1 for first player listed): "
   end
 
   def display_game_update
